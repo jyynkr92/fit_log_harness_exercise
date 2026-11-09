@@ -46,4 +46,4 @@ npx knip 2>/dev/null || true                  # 미사용 파일/export/의존�
 품질 점수 변화: stats/service C → B
 제안: (규칙 승격 / 다음 정리 대상)
 ```
-커밋은 `/commit`으로 (type: `refactor` 또는 `docs`, scope 포함).
+커밋은 `/commit`으로 (타입: `♻️ Refactor`, `📚 Docs`, `🗑 Remove` 등, scope 포함).

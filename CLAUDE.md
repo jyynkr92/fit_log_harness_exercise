@@ -85,7 +85,7 @@ npx @react-native-reusables/cli@latest add <component>
 | --- | --- |
 | `/new-screen` | 레이어 규칙에 맞춰 화면 + feature 뼈대 생성 |
 | `/review` | 불변식 · 황금 원칙 기준 변경사항 리뷰 |
-| `/commit` | 검사 통과 후 Conventional Commit |
+| `/commit` | 검사 통과 후 이모지 타입 규칙으로 커밋 (규칙: 스킬 내 표) |
 | `/cleanup` | 가비지 컬렉션: 드리프트 탐지, 품질 점수/부채 갱신, 문서 정원 가꾸기 |
 | `/deploy` | EAS Update / Build / Submit + Supabase 마이그레이션 (사용자 확인 필수) |
 
