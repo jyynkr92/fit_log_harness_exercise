@@ -13,6 +13,12 @@
 - 비동기 액션은 `{ status: 'idle'|'loading'|'success'|'error', error? }` 형태로 상태 노출.
 - persist가 필요하면 `zustand/middleware`의 persist + AsyncStorage (민감정보 저장 금지 → SECURITY).
 
+## 입력 성능 규칙
+- 키 입력마다 호출되는 store 액션은 **상태가 실제로 바뀔 때만 set** 한다
+  (불필요한 리렌더로 controlled TextInput 글자가 누락된 사례: authStore.clearError).
+- 폼 초기값을 바꾸려고 useEffect 안에서 setState 하지 말고, 부모가 `key` 로 리마운트한다.
+- 렌더 중 `Date.now()` 금지 (react-hooks/purity) → `lib/useNow`.
+
 ## 화면 상태 규약
 모든 데이터 화면은 `loading` / `empty` / `error` / `success` 4상태를 렌더링한다.
 

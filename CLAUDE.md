@@ -30,6 +30,7 @@ Expo (managed, CNG) · Expo Router · NativeWind · React Native Reusables · Zu
 app/                 Expo Router 라우트. 얇게 유지 (조립만, 로직 금지)
 features/<domain>/   도메인 단위 코드. 레이어 규칙 적용 (아래)
 components/ui/       Reusables 프리미티브 (CLI로 추가, 도메인 로직 금지)
+components/*.tsx     도메인 무관 공유 UI (screen-state 등)
 lib/                 Providers: supabase 클라이언트, auth, utils, theme
 supabase/            migrations/, seed.sql, functions/
 docs/                기록 시스템 (system of record)
@@ -60,12 +61,13 @@ ios/ android/        생성물. 직접 수정 금지 (hook이 차단)
 ## 명령어
 
 ```bash
-npx expo start                     # 개발 서버
+npm run db:start                   # 로컬 Supabase (Docker)
+npx expo start --ios               # 개발 서버 (환경변수: README "로컬 실행")
 npm run typecheck                  # tsc --noEmit
-npm run lint                       # eslint
-node scripts/check-architecture.mjs  # 불변식 검사
+npm run lint                       # eslint (expo flat config)
+npm run check:arch                 # 불변식 검사
 npm test                           # 단위 테스트 (service 레이어 위주)
-npx supabase gen types typescript --local > lib/database.types.ts
+npm run db:types                   # 마이그레이션 후 lib/database.types.ts 재생성
 npx @react-native-reusables/cli@latest add <component>
 ```
 

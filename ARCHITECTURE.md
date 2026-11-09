@@ -10,7 +10,7 @@
 | workouts | `features/workouts/` | 운동 세션·세트 기록 CRUD |
 | exercises | `features/exercises/` | 운동 종목 카탈로그 |
 | stats | `features/stats/` | 볼륨·PR·빈도 등 통계 계산과 시각화 |
-| profile | `features/profile/` | 사용자 설정, 단위(kg/lb) |
+| profile | `features/profile/` | 계정 정보, 로그아웃 (단위 설정은 미구현) |
 
 > 도메인 추가 시 이 표를 갱신한다.
 
@@ -54,16 +54,20 @@ lib/ (Providers: supabase, auth, theme, utils) — 어디서든 사용, 단 lib/
 - `components/ui/**`: Reusables 프리미티브. `features/` import 금지.
 - `lib/**`: 어떤 feature도 import 금지 (Providers는 최하단).
 - feature A → feature B: `@/features/B` (index) 로만.
+- 순수 레이어(`types`/`schema`/`service`)는 다른 feature 를 **`import type` 으로만** 가져온다.
+  feature index 는 store·repo·supabase 까지 끌고 와서 순수성과 단위 테스트를 깨뜨린다.
+- `components/*.tsx`(ui 밖): 도메인 무관 공유 UI. `features/` import 금지.
 
 ## 데이터 흐름 예: 세트 기록
 
 ```
-app/(tabs)/workout/[id].tsx
-  └─ features/workouts/components/SetRow  (UI)
-       └─ hooks/useWorkoutSession          (React 바인딩)
-            └─ store/workoutSessionStore   (Zustand, 낙관적 업데이트)
-                 ├─ repo/workoutRepo       (supabase.from('sets').insert → schema 파싱)
-                 └─ service/volume         (순수 계산)
+app/workout/[id].tsx                         (id 를 그대로 전달)
+  └─ features/workouts/components/WorkoutSessionScreen
+       ├─ components/SetEntryForm           (schema/SetFormSchema 로 입력 파싱)
+       └─ hooks/useWorkouts                 (route param 파싱, React 바인딩)
+            └─ store/workoutStore           (Zustand, 낙관적 업데이트 + 실패 시 롤백)
+                 ├─ repo/workoutRepo        (supabase insert → WorkoutSetRowSchema 파싱)
+                 └─ service/workoutMath     (순수 계산: 볼륨, 다음 세트 추천)
 ```
 
 ## 라우팅 구조 (Expo Router)

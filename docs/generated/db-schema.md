@@ -11,9 +11,8 @@
 
 | 테이블 | 주요 컬럼 | RLS |
 | --- | --- | --- |
-| profiles | id (=auth.uid), unit_system, created_at | own row |
-| exercises | id, name, category, is_custom, owner_id | public read + own custom |
-| workouts | id, user_id, started_at, ended_at, note | own rows |
-| workout_sets | id, workout_id, exercise_id, set_index, weight, reps, rpe | via workout owner |
+| exercises | id, name, category, owner_id (null=기본 제공), created_at | 기본+내 것 조회, 내 것만 수정 |
+| workouts | id, user_id (default auth.uid()), started_at, ended_at, note | 내 것만 |
+| workout_sets | id, workout_id, exercise_id, set_index, weight numeric(6,2), reps, created_at | 부모 workout 소유자만 |
 
-(초기 설계안 — 첫 마이그레이션 작성 후 실제 스키마로 교체)
+출처: `supabase/migrations/20261109000000_init_workouts.sql` · seed: 기본 종목 13개 (`supabase/seed.sql`)
