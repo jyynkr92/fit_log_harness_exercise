@@ -1,0 +1,36 @@
+# 프로필에서 lb 로 바꾸면 기록·입력이 lb 로 보이고, 다시 kg 로 되돌린다
+appId: host.exp.Exponent
+name: 무게 단위 kg/lb 전환
+---
+- runFlow: subflows/open-app.yaml
+- runFlow: subflows/sign-in.yaml
+- runFlow: subflows/discard-active-workout.yaml
+
+- runFlow:
+    file: subflows/set-unit.yaml
+    env:
+      UNIT: lb
+- tapOn:
+    id: "tab-history"
+- assertVisible: ".*lb.*"
+- assertNotVisible: ".*세트 · [0-9,]+kg.*"
+
+# 입력 폼도 lb (스테퍼 5lb 단위)
+- tapOn:
+    id: "tab-today"
+- tapOn:
+    id: "start-workout-button"
+- tapOn: "스쿼트"
+- assertVisible: "무게 (lb)"
+- tapOn: "운동 기록 삭제"
+- tapOn: "삭제"
+- assertVisible: "오늘 운동할 준비 되셨나요?"
+
+# 원복
+- runFlow:
+    file: subflows/set-unit.yaml
+    env:
+      UNIT: kg
+- tapOn:
+    id: "tab-history"
+- assertVisible: ".*kg.*"

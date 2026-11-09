@@ -1,0 +1,9 @@
+# 무게 단위를 UNIT(kg|lb)으로 맞추고 오늘 탭으로 돌아온다. 단위는 기기에 남으므로 매 플로우가 직접 설정한다.
+appId: host.exp.Exponent
+---
+- tapOn:
+    id: "tab-profile"
+- tapOn:
+    id: "unit-${UNIT}"
+- tapOn:
+    id: "tab-today"

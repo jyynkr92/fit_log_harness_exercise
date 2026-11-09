@@ -1,0 +1,4 @@
+# Maestro E2E (iOS 시뮬레이터 + Expo Go). 실행법: README "E2E 테스트"
+# 각 플로우는 독립적이다: 로그아웃 상태에서 시작하고, 필요한 단위(kg/lb)를 직접 설정한다.
+flows:
+  - "*.yaml"

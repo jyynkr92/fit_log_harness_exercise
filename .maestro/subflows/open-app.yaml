@@ -1,0 +1,15 @@
+# Expo Go 로 개발 서버의 앱을 연다. 키체인을 지워 항상 로그아웃 상태에서 시작한다.
+appId: host.exp.Exponent
+---
+- launchApp:
+    stopApp: true
+    clearKeychain: true
+- openLink: ${METRO_URL || 'exp://127.0.0.1:8081'}
+- runFlow:
+    when:
+      visible: "Continue"
+    commands:
+      - tapOn: "Continue"
+- extendedWaitUntil:
+    visible: "FitLog"
+    timeout: 60000

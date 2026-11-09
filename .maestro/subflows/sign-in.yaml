@@ -1,0 +1,19 @@
+# 기존 계정으로 로그인 (로컬 테스트 계정: README "로컬 테스트 계정")
+appId: host.exp.Exponent
+---
+- tapOn:
+    id: "email-input"
+- inputText: ${EMAIL || 'tester@fitlog.test'}
+- tapOn:
+    id: "password-input"
+- inputText: ${PASSWORD || 'fitlog-local-test'}
+- tapOn:
+    id: "auth-submit"
+- runFlow:
+    when:
+      visible: "지금 안 함"
+    commands:
+      - tapOn: "지금 안 함"
+- extendedWaitUntil:
+    visible: "최근 운동"
+    timeout: 20000

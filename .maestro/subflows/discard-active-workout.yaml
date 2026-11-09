@@ -1,0 +1,16 @@
+# 이전 실행이 남긴 진행 중 운동이 있으면 지운다 (플로우를 몇 번 돌려도 같은 결과가 나오게)
+appId: host.exp.Exponent
+---
+- runFlow:
+    when:
+      visible:
+        id: "continue-workout-button"
+    commands:
+      - tapOn:
+          id: "continue-workout-button"
+      - scrollUntilVisible:
+          element: "운동 기록 삭제"
+      - tapOn: "운동 기록 삭제"
+      - tapOn: "삭제"
+- assertVisible:
+    id: "start-workout-button"

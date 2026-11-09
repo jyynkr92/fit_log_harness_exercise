@@ -1,0 +1,29 @@
+# 잘못된 입력은 저장되지 않고 이유를 보여준다
+appId: host.exp.Exponent
+name: 세트 입력 검증
+---
+- runFlow: subflows/open-app.yaml
+- runFlow: subflows/sign-in.yaml
+- runFlow: subflows/discard-active-workout.yaml
+- runFlow:
+    file: subflows/set-unit.yaml
+    env:
+      UNIT: kg
+
+- tapOn:
+    id: "start-workout-button"
+- tapOn: "데드리프트"
+- tapOn:
+    id: "reps-input"
+- eraseText: 10
+- inputText: "0"
+- tapOn:
+    id: "add-set-button"
+- assertVisible: "횟수는 1 이상이어야 합니다."
+- assertVisible: "0kg"   # 요약 볼륨이 그대로 0
+
+# 정리: 이 운동은 지운다. 숫자 키패드는 닫기 키가 없어 빈 곳(요약 영역)을 눌러 닫는다
+- tapOn: "시간"
+- tapOn: "운동 기록 삭제"
+- tapOn: "삭제"
+- assertVisible: "오늘 운동할 준비 되셨나요?"
