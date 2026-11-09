@@ -9,6 +9,7 @@ import {
 import type { ColorValue } from 'react-native';
 
 import { Icon } from '@/components/ui/icon';
+import { useWorkoutSync } from '@/features/workouts';
 
 type TabIconProps = { color: ColorValue };
 
@@ -22,12 +23,25 @@ const StatsIcon = (p: TabIconProps) => <TabIcon as={BarChart3Icon} {...p} />;
 const ProfileIcon = (p: TabIconProps) => <TabIcon as={UserIcon} {...p} />;
 
 export default function TabsLayout() {
+  useWorkoutSync(); // 오프라인 아웃박스 재시도 (연결 복구·포그라운드·주기)
   return (
     <Tabs screenOptions={{ headerTitleAlign: 'center' }}>
-      <Tabs.Screen name="index" options={{ title: '오늘', tabBarIcon: TodayIcon }} />
-      <Tabs.Screen name="history" options={{ title: '기록', tabBarIcon: HistoryTabIcon }} />
-      <Tabs.Screen name="stats" options={{ title: '통계', tabBarIcon: StatsIcon }} />
-      <Tabs.Screen name="profile" options={{ title: '프로필', tabBarIcon: ProfileIcon }} />
+      <Tabs.Screen
+        name="index"
+        options={{ title: '오늘', tabBarButtonTestID: 'tab-today', tabBarIcon: TodayIcon }}
+      />
+      <Tabs.Screen
+        name="history"
+        options={{ title: '기록', tabBarButtonTestID: 'tab-history', tabBarIcon: HistoryTabIcon }}
+      />
+      <Tabs.Screen
+        name="stats"
+        options={{ title: '통계', tabBarButtonTestID: 'tab-stats', tabBarIcon: StatsIcon }}
+      />
+      <Tabs.Screen
+        name="profile"
+        options={{ title: '프로필', tabBarButtonTestID: 'tab-profile', tabBarIcon: ProfileIcon }}
+      />
     </Tabs>
   );
 }

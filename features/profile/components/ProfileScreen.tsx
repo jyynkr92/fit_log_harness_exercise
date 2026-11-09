@@ -1,5 +1,5 @@
 import { LogOutIcon, UserIcon } from 'lucide-react-native';
-import { Alert, ScrollView, View } from 'react-native';
+import { Alert, Pressable, ScrollView, View } from 'react-native';
 
 import { Button } from '@/components/ui/button';
 import { Card, CardContent } from '@/components/ui/card';
@@ -8,12 +8,18 @@ import { Separator } from '@/components/ui/separator';
 import { Text } from '@/components/ui/text';
 import { useCurrentUser, useSignOut } from '@/features/auth';
 import { useWorkouts } from '@/features/workouts';
+import { useUnitStore, type WeightUnit } from '@/lib/units';
+import { cn } from '@/lib/utils';
+
+const UNITS: WeightUnit[] = ['kg', 'lb'];
 
 export function ProfileScreen() {
   const user = useCurrentUser();
   const signOut = useSignOut();
   const { workouts } = useWorkouts();
   const totalSets = workouts.reduce((n, w) => n + w.sets.length, 0);
+  const unit = useUnitStore((s) => s.unit);
+  const setUnit = useUnitStore((s) => s.setUnit);
 
   const onSignOut = () =>
     Alert.alert('로그아웃', '로그아웃할까요?', [
@@ -38,9 +44,30 @@ export function ProfileScreen() {
       </Card>
       <Card>
         <CardContent className="gap-3 pt-6">
-          <View className="flex-row justify-between">
+          <View className="flex-row items-center justify-between">
             <Text>무게 단위</Text>
-            <Text className="text-muted-foreground">kg</Text>
+            <View className="flex-row rounded-lg bg-muted p-1">
+              {UNITS.map((u) => (
+                <Pressable
+                  key={u}
+                  testID={`unit-${u}`}
+                  accessibilityRole="button"
+                  accessibilityState={{ selected: unit === u }}
+                  onPress={() => setUnit(u)}
+                  className={cn(
+                    'min-h-9 min-w-14 items-center justify-center rounded-md px-3',
+                    unit === u && 'bg-background'
+                  )}>
+                  <Text
+                    className={cn(
+                      'text-sm',
+                      unit === u ? 'font-semibold' : 'text-muted-foreground'
+                    )}>
+                    {u}
+                  </Text>
+                </Pressable>
+              ))}
+            </View>
           </View>
           <Separator />
           <View className="flex-row justify-between">

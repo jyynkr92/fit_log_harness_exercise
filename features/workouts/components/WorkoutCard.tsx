@@ -5,13 +5,15 @@ import { Badge } from '@/components/ui/badge';
 import { Icon } from '@/components/ui/icon';
 import { Text } from '@/components/ui/text';
 import { useExerciseLookup } from '@/features/exercises';
-import { formatDate, formatDuration, formatTime, formatVolume } from '@/lib/format';
+import { formatDate, formatDuration, formatTime } from '@/lib/format';
+import { useWeightFormat } from '@/lib/units';
 
 import { groupSetsByExercise, summarizeWorkout } from '../service/workoutMath';
 import type { Workout } from '../types';
 
 export function WorkoutCard({ workout, onPress }: { workout: Workout; onPress: () => void }) {
   const lookup = useExerciseLookup();
+  const { fmtVolume } = useWeightFormat();
   const summary = summarizeWorkout(workout);
   const names = groupSetsByExercise(workout.sets).map(
     (g) => lookup.get(g.exerciseId)?.name ?? '알 수 없는 종목'
@@ -30,10 +32,15 @@ export function WorkoutCard({ workout, onPress }: { workout: Workout; onPress: (
               <Text>진행 중</Text>
             </Badge>
           ) : null}
+          {workout.pending || workout.sets.some((x) => x.pending) ? (
+            <Badge variant="outline">
+              <Text>동기화 대기</Text>
+            </Badge>
+          ) : null}
         </View>
         <Text className="text-sm text-muted-foreground">
           {formatDuration(summary.durationMs)} · {summary.setCount}세트 ·{' '}
-          {formatVolume(summary.volume)}
+          {fmtVolume(summary.volume)}
         </Text>
         {names.length > 0 ? (
           <Text className="text-sm" numberOfLines={1}>

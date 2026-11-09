@@ -7,13 +7,16 @@ import { Icon } from '@/components/ui/icon';
 import { Input } from '@/components/ui/input';
 import { Text } from '@/components/ui/text';
 import { errorMessage } from '@/lib/errors';
+import { useWeightFormat } from '@/lib/units';
 
 import { SetFormSchema } from '../schema/workout';
 import { stepValue } from '../service/workoutMath';
 
 type Props = {
   exerciseName: string;
+  /** 추천값 (무게는 kg) */
   suggestion: { weight: number; reps: number };
+  /** 무게는 kg 로 변환해서 넘긴다 */
   onSubmit: (value: { weight: number; reps: number }) => Promise<void>;
 };
 
@@ -29,7 +32,7 @@ function Stepper(props: {
   const bump = (d: number) =>
     props.onChange(String(stepValue(Number(props.value) || 0, d, props.min)));
   return (
-    <View className="flex-1 gap-1.5">
+    <View className="gap-1.5">
       <Text className="text-xs text-muted-foreground">
         {props.label} ({props.unit})
       </Text>
@@ -37,12 +40,15 @@ function Stepper(props: {
         <Button
           variant="outline"
           size="icon"
-          className="h-12 w-12"
+          className="h-12 w-14"
+          accessibilityLabel={`${props.label} ${props.step} 감소`}
+          testID={`${props.testID}-dec`}
           onPress={() => bump(-props.step)}>
           <Icon as={MinusIcon} className="size-5" />
         </Button>
         <Input
           testID={props.testID}
+          accessibilityLabel={props.label}
           className="h-12 flex-1 text-center text-xl font-semibold"
           keyboardType="decimal-pad"
           value={props.value}
@@ -52,7 +58,9 @@ function Stepper(props: {
         <Button
           variant="outline"
           size="icon"
-          className="h-12 w-12"
+          className="h-12 w-14"
+          accessibilityLabel={`${props.label} ${props.step} 증가`}
+          testID={`${props.testID}-inc`}
           onPress={() => bump(props.step)}>
           <Icon as={PlusIcon} className="size-5" />
         </Button>
@@ -63,10 +71,12 @@ function Stepper(props: {
 
 /**
  * 무게·횟수 입력. 지난 기록으로 프리필되고, 스테퍼로 빠르게 조정한다.
+ * 표시·입력은 사용자의 단위(kg/lb), 저장은 항상 kg.
  * 종목이 바뀌면 부모가 key 로 리마운트해 초기값을 다시 잡는다.
  */
 export function SetEntryForm({ exerciseName, suggestion, onSubmit }: Props) {
-  const [weight, setWeight] = useState(String(suggestion.weight));
+  const { unit, step, toDisplay, fromDisplay } = useWeightFormat();
+  const [weight, setWeight] = useState(String(toDisplay(suggestion.weight)));
   const [reps, setReps] = useState(String(suggestion.reps));
   const [error, setError] = useState<string | null>(null);
   const [saving, setSaving] = useState(false);
@@ -80,7 +90,7 @@ export function SetEntryForm({ exerciseName, suggestion, onSubmit }: Props) {
     setSaving(true);
     setError(null);
     try {
-      await onSubmit(parsed.data);
+      await onSubmit({ weight: fromDisplay(parsed.data.weight), reps: parsed.data.reps });
     } catch (e) {
       setError(errorMessage(e));
     } finally {
@@ -91,12 +101,13 @@ export function SetEntryForm({ exerciseName, suggestion, onSubmit }: Props) {
   return (
     <View className="gap-3 rounded-xl border border-border bg-card p-4">
       <Text className="font-semibold">{exerciseName}</Text>
-      <View className="flex-row gap-3">
+      {/* 세로 배치: 소수점 무게(102.5, 66.1)도 잘리지 않게 입력칸을 넓게 */}
+      <View className="gap-3">
         <Stepper
           label="무게"
-          unit="kg"
+          unit={unit}
           value={weight}
-          step={2.5}
+          step={step}
           min={0}
           testID="weight-input"
           onChange={setWeight}
@@ -111,7 +122,11 @@ export function SetEntryForm({ exerciseName, suggestion, onSubmit }: Props) {
           onChange={setReps}
         />
       </View>
-      {error ? <Text className="text-sm text-destructive">{error}</Text> : null}
+      {error ? (
+        <Text testID="set-form-error" className="text-sm text-destructive">
+          {error}
+        </Text>
+      ) : null}
       <Button size="lg" onPress={submit} disabled={saving} testID="add-set-button">
         <Icon as={PlusIcon} className="size-4 text-primary-foreground" />
         <Text>세트 추가</Text>

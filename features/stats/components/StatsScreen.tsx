@@ -6,7 +6,8 @@ import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Icon } from '@/components/ui/icon';
 import { Text } from '@/components/ui/text';
 import { useExerciseLookup } from '@/features/exercises';
-import { formatDate, formatNumber, formatVolume } from '@/lib/format';
+import { formatDate, formatNumber } from '@/lib/format';
+import { useWeightFormat } from '@/lib/units';
 import { cn } from '@/lib/utils';
 
 import { useStats } from '../hooks/useStats';
@@ -23,7 +24,9 @@ function Metric({ label, value }: { label: string; value: string }) {
 }
 
 export function StatsScreen() {
-  const { overview, buckets, bests, hasAny, period, setPeriod, status, error, reload } = useStats();
+  const { overview, buckets, bests, hasAny, period, setPeriod, status, error, offline, reload } =
+    useStats();
+  const { fmtWeight, fmtVolume } = useWeightFormat();
   const lookup = useExerciseLookup();
 
   if (status === 'idle' || status === 'loading') return <LoadingState rows={3} />;
@@ -40,6 +43,11 @@ export function StatsScreen() {
 
   return (
     <ScrollView className="flex-1 bg-background" contentContainerClassName="gap-4 p-4 pb-12">
+      {offline ? (
+        <Text testID="stats-offline" className="rounded-lg bg-muted px-3 py-2 text-sm text-muted-foreground">
+          오프라인이에요. 기기에 있는 최근 기록으로 계산했어요.
+        </Text>
+      ) : null}
       <View className="flex-row rounded-lg bg-muted p-1">
         {PERIODS.map((p) => (
           <Pressable
@@ -60,7 +68,7 @@ export function StatsScreen() {
 
       <View className="flex-row flex-wrap gap-3">
         <Metric label="운동 횟수" value={`${overview.sessions}회`} />
-        <Metric label="총 볼륨" value={formatVolume(overview.volume)} />
+        <Metric label="총 볼륨" value={fmtVolume(overview.volume)} />
         <Metric
           label="주당 평균"
           value={
@@ -101,10 +109,10 @@ export function StatsScreen() {
                     {lookup.get(b.exerciseId)?.name ?? '알 수 없는 종목'}
                   </Text>
                   <Text className="text-xs text-muted-foreground">
-                    {formatNumber(b.weight, 2)}kg × {b.reps}회 · {formatDate(b.date)}
+                    {fmtWeight(b.weight)} × {b.reps}회 · {formatDate(b.date)}
                   </Text>
                 </View>
-                <Text className="font-semibold">{formatNumber(b.e1rm, 1)}kg</Text>
+                <Text className="font-semibold">{fmtWeight(b.e1rm)}</Text>
               </View>
             ))
           )}

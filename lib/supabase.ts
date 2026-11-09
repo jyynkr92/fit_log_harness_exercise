@@ -20,6 +20,9 @@ if (!url || !anonKey) {
 }
 
 export const supabase = createClient<Database>(url, anonKey, {
+  // 재시도는 오프라인 아웃박스가 담당한다. 클라이언트 자동 재시도(백오프)가 겹치면
+  // 오프라인 감지가 ~20초 늦어진다. 요청은 10초 넘으면 실패로 본다.
+  db: { retry: false, timeout: 10_000 },
   auth: {
     storage: chunkedSecureStorage,
     autoRefreshToken: true,

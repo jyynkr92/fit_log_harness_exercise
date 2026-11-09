@@ -61,11 +61,16 @@ export function SignInScreen() {
             />
           </View>
           {error ? <Text className="text-sm text-destructive">{error}</Text> : null}
-          <Button size="lg" disabled={submitting} onPress={() => submit(mode, { email, password })}>
+          <Button
+            size="lg"
+            testID="auth-submit"
+            disabled={submitting}
+            onPress={() => submit(mode, { email, password })}>
             <Text>{submitting ? '잠시만요…' : isSignIn ? '로그인' : '가입하고 시작하기'}</Text>
           </Button>
           <Button
             variant="ghost"
+            testID="auth-mode-toggle"
             onPress={() => (setMode(isSignIn ? 'signUp' : 'signIn'), clearError())}>
             <Text>{isSignIn ? '계정이 없나요? 회원가입' : '이미 계정이 있나요? 로그인'}</Text>
           </Button>

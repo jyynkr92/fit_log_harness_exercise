@@ -1,7 +1,7 @@
 import { View } from 'react-native';
 
 import { Text } from '@/components/ui/text';
-import { formatVolume } from '@/lib/format';
+import { useWeightFormat } from '@/lib/units';
 import { cn } from '@/lib/utils';
 
 import type { VolumeBucket } from '../types';
@@ -11,6 +11,7 @@ import type { VolumeBucket } from '../types';
  * 차트 라이브러리 선택은 design-doc 결정 전까지 보류 (docs/DESIGN.md "미정").
  */
 export function VolumeChart({ buckets }: { buckets: VolumeBucket[] }) {
+  const { fmtVolume } = useWeightFormat();
   const max = Math.max(1, ...buckets.map((b) => b.volume));
   const dense = buckets.length > 6;
   const peak = buckets.reduce((best, b) => (b.volume > best.volume ? b : best), buckets[0]);
@@ -21,7 +22,7 @@ export function VolumeChart({ buckets }: { buckets: VolumeBucket[] }) {
         {buckets.map((b) => (
           <View key={b.key} className="h-full flex-1 justify-end">
             <View
-              accessibilityLabel={`${b.label} ${formatVolume(b.volume)}`}
+              accessibilityLabel={`${b.label} ${fmtVolume(b.volume)}`}
               className={cn('w-full rounded-t-md', b.volume > 0 ? 'bg-primary' : 'bg-muted')}
               style={{ height: `${Math.max(2, (b.volume / max) * 100)}%` }}
             />
@@ -40,7 +41,7 @@ export function VolumeChart({ buckets }: { buckets: VolumeBucket[] }) {
       </View>
       {peak && peak.volume > 0 ? (
         <Text className="text-xs text-muted-foreground">
-          최고: {peak.label} {formatVolume(peak.volume)}
+          최고: {peak.label} {fmtVolume(peak.volume)}
         </Text>
       ) : null}
     </View>

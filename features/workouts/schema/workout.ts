@@ -45,7 +45,7 @@ export const SetFormSchema = z.object({
   weight: z.coerce
     .number({ error: '무게를 숫자로 입력하세요.' })
     .min(0, '무게는 0 이상이어야 합니다.')
-    .max(1000, '무게가 너무 큽니다.'),
+    .max(2500, '무게가 너무 큽니다.'), // lb 입력까지 고려한 표시 단위 상한
   reps: z.coerce
     .number({ error: '횟수를 숫자로 입력하세요.' })
     .int('횟수는 정수로 입력하세요.')

@@ -12,10 +12,11 @@ export function useExercises() {
 
   useEffect(() => {
     if (!userId) reset();
-    else if (status === 'idle') load();
+    else if (status === 'idle') void load(userId);
   }, [userId, status, load, reset]);
 
-  return { exercises, status, error, reload: load };
+  const reload = () => (userId ? load(userId) : Promise.resolve());
+  return { exercises, status, error, reload };
 }
 
 /** id → 종목 조회 맵 */

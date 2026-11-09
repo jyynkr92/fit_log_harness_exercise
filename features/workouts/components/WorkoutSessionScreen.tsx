@@ -8,13 +8,15 @@ import { Button } from '@/components/ui/button';
 import { Text } from '@/components/ui/text';
 import { ExercisePicker, useExerciseLookup, type Exercise } from '@/features/exercises';
 import { errorMessage } from '@/lib/errors';
-import { formatDate, formatDuration, formatVolume } from '@/lib/format';
+import { formatDate, formatDuration } from '@/lib/format';
+import { useWeightFormat } from '@/lib/units';
 import { useNow } from '@/lib/useNow';
 
-import { useWorkoutActions, useWorkoutByParam } from '../hooks/useWorkouts';
+import { useSyncState, useWorkoutActions, useWorkoutByParam } from '../hooks/useWorkouts';
 import { groupSetsByExercise, suggestNextSet, summarizeWorkout } from '../service/workoutMath';
 import { ExerciseSetCard } from './ExerciseSetCard';
 import { SetEntryForm } from './SetEntryForm';
+import { SyncBanner } from './SyncBanner';
 
 function Stat({ label, value }: { label: string; value: string }) {
   return (
@@ -31,6 +33,8 @@ export function WorkoutSessionScreen({ id }: { id: unknown }) {
   const { workout, workouts, status, error, reload, invalidId } = useWorkoutByParam(id);
   const { addSet, removeSet, finish, remove } = useWorkoutActions();
   const lookup = useExerciseLookup();
+  const { fmtVolume } = useWeightFormat();
+  const sync = useSyncState();
   const isActive = workout?.endedAt === null;
   const now = useNow(30_000, isActive);
   const [selected, setSelected] = useState<Exercise | null>(null);
@@ -90,14 +94,17 @@ export function WorkoutSessionScreen({ id }: { id: unknown }) {
   return (
     <>
       <Stack.Screen options={{ title: isActive ? '운동 중' : formatDate(workout.startedAt) }} />
+      {/* 숫자 키패드에는 닫기 키가 없어 스크롤(on-drag)·빈 곳 탭(handled)으로 닫는다 */}
       <ScrollView
         className="flex-1 bg-background"
         contentContainerClassName="gap-4 p-4 pb-16"
-        keyboardShouldPersistTaps="handled">
+        keyboardShouldPersistTaps="handled"
+        keyboardDismissMode="on-drag">
+        <SyncBanner state={sync} />
         <View className="flex-row rounded-xl bg-muted py-4">
           <Stat label="시간" value={formatDuration(summary.durationMs)} />
           <Stat label="세트" value={String(summary.setCount)} />
-          <Stat label="볼륨" value={formatVolume(summary.volume)} />
+          <Stat label="볼륨" value={fmtVolume(summary.volume)} />
         </View>
 
         {groups.map((g) => {

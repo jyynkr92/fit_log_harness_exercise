@@ -24,6 +24,3 @@ export function formatNumber(n: number, digits = 0): string {
   return n.toLocaleString('ko-KR', { maximumFractionDigits: digits });
 }
 
-export function formatVolume(kg: number): string {
-  return kg >= 10000 ? `${formatNumber(kg / 1000, 1)}t` : `${formatNumber(kg)}kg`;
-}

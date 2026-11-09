@@ -17,7 +17,15 @@ export function toAppError(error: unknown, fallback = '요청을 처리하지 �
   const e = (error ?? {}) as ErrorLike;
   if (e.name === 'ZodError')
     return new AppError('서버 응답 형식이 올바르지 않습니다.', 'validation', error);
-  if (e.message?.includes('Network request failed') || e.message?.includes('fetch')) {
+  if (
+    e.message?.includes('Network request failed') ||
+    e.message?.includes('fetch') ||
+    e.name === 'AbortError' ||
+    /timed? ?out|aborted/i.test(e.message ?? '') ||
+    e.status === 502 ||
+    e.status === 503 ||
+    e.status === 504
+  ) {
     return new AppError('네트워크에 연결할 수 없습니다. 연결을 확인해 주세요.', 'network', error);
   }
   if (e.status === 400 || e.status === 401 || e.name?.startsWith('Auth')) {
@@ -28,6 +36,9 @@ export function toAppError(error: unknown, fallback = '요청을 처리하지 �
 }
 
 export const errorMessage = (error: unknown) => toAppError(error).message;
+
+/** 재시도하면 성공할 수 있는 연결 문제인지 (오프라인 아웃박스가 사용) */
+export const isNetworkError = (error: unknown) => toAppError(error).code === 'network';
 
 /** 비동기 액션 상태 (docs/FRONTEND.md) */
 export type AsyncStatus = 'idle' | 'loading' | 'success' | 'error';
