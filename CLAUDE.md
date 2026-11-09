@@ -9,20 +9,20 @@ Expo (managed, CNG) · Expo Router · NativeWind · React Native Reusables · Zu
 
 ## 먼저 읽을 것 (작업 유형별)
 
-| 하려는 일 | 읽을 문서 |
-| --- | --- |
-| 전체 구조 파악 | [ARCHITECTURE.md](ARCHITECTURE.md) |
-| 화면 추가 | `/new-screen` 스킬 → [docs/FRONTEND.md](docs/FRONTEND.md) |
-| UI/스타일 | [docs/DESIGN.md](docs/DESIGN.md) |
-| DB·인증·API | [docs/BACKEND.md](docs/BACKEND.md), [docs/generated/db-schema.md](docs/generated/db-schema.md) |
-| 기능 요구사항 | [docs/product-specs/index.md](docs/product-specs/index.md) |
-| 큰 작업 계획 | [docs/PLANS.md](docs/PLANS.md) → `docs/exec-plans/active/` |
-| 왜 이렇게 하나 | [docs/design-docs/core-beliefs.md](docs/design-docs/core-beliefs.md) |
-| 품질 현황·부채 | [docs/QUALITY_SCORE.md](docs/QUALITY_SCORE.md), [docs/exec-plans/tech-debt-tracker.md](docs/exec-plans/tech-debt-tracker.md) |
-| 보안·비밀값 | [docs/SECURITY.md](docs/SECURITY.md) |
-| 에러·오프라인·성능 | [docs/RELIABILITY.md](docs/RELIABILITY.md) |
-| 배포 | `/deploy` 스킬 → [docs/RELEASE.md](docs/RELEASE.md) |
-| 외부 라이브러리 레퍼런스 | [docs/references/](docs/references/README.md) |
+| 하려는 일                | 읽을 문서                                                                                                                    |
+| ------------------------ | ---------------------------------------------------------------------------------------------------------------------------- |
+| 전체 구조 파악           | [ARCHITECTURE.md](ARCHITECTURE.md)                                                                                           |
+| 화면 추가                | `/new-screen` 스킬 → [docs/FRONTEND.md](docs/FRONTEND.md)                                                                    |
+| UI/스타일                | [docs/DESIGN.md](docs/DESIGN.md)                                                                                             |
+| DB·인증·API              | [docs/BACKEND.md](docs/BACKEND.md), [docs/generated/db-schema.md](docs/generated/db-schema.md)                               |
+| 기능 요구사항            | [docs/product-specs/index.md](docs/product-specs/index.md)                                                                   |
+| 큰 작업 계획             | [docs/PLANS.md](docs/PLANS.md) → `docs/exec-plans/active/`                                                                   |
+| 왜 이렇게 하나           | [docs/design-docs/core-beliefs.md](docs/design-docs/core-beliefs.md)                                                         |
+| 품질 현황·부채           | [docs/QUALITY_SCORE.md](docs/QUALITY_SCORE.md), [docs/exec-plans/tech-debt-tracker.md](docs/exec-plans/tech-debt-tracker.md) |
+| 보안·비밀값              | [docs/SECURITY.md](docs/SECURITY.md)                                                                                         |
+| 에러·오프라인·성능       | [docs/RELIABILITY.md](docs/RELIABILITY.md)                                                                                   |
+| 배포                     | `/deploy` 스킬 → [docs/RELEASE.md](docs/RELEASE.md)                                                                          |
+| 외부 라이브러리 레퍼런스 | [docs/references/](docs/references/README.md)                                                                                |
 
 ## 디렉터리 지도
 
@@ -66,7 +66,8 @@ npx expo start --ios               # 개발 서버 (환경변수: README "로컬
 npm run typecheck                  # tsc --noEmit
 npm run lint                       # eslint (expo flat config)
 npm run check:arch                 # 불변식 검사
-npm test                           # 단위 테스트 (service 레이어 위주)
+npm test                           # 단위·컴포넌트·스토어 통합 테스트
+npm run e2e                        # Maestro E2E (README "E2E 테스트")
 npm run db:types                   # 마이그레이션 후 lib/database.types.ts 재생성
 npx @react-native-reusables/cli@latest add <component>
 ```
@@ -83,13 +84,13 @@ npx @react-native-reusables/cli@latest add <component>
 
 ## 스킬
 
-| 스킬 | 용도 |
-| --- | --- |
-| `/new-screen` | 레이어 규칙에 맞춰 화면 + feature 뼈대 생성 |
-| `/review` | 불변식 · 황금 원칙 기준 변경사항 리뷰 |
-| `/commit` | 검사 통과 후 이모지 타입 규칙으로 커밋 (규칙: 스킬 내 표) |
-| `/cleanup` | 가비지 컬렉션: 드리프트 탐지, 품질 점수/부채 갱신, 문서 정원 가꾸기 |
-| `/deploy` | EAS Update / Build / Submit + Supabase 마이그레이션 (사용자 확인 필수) |
+| 스킬          | 용도                                                                   |
+| ------------- | ---------------------------------------------------------------------- |
+| `/new-screen` | 레이어 규칙에 맞춰 화면 + feature 뼈대 생성                            |
+| `/review`     | 불변식 · 황금 원칙 기준 변경사항 리뷰                                  |
+| `/commit`     | 검사 통과 후 이모지 타입 규칙으로 커밋 (규칙: 스킬 내 표)              |
+| `/cleanup`    | 가비지 컬렉션: 드리프트 탐지, 품질 점수/부채 갱신, 문서 정원 가꾸기    |
+| `/deploy`     | EAS Update / Build / Submit + Supabase 마이그레이션 (사용자 확인 필수) |
 
 ## 황금 원칙 (취향, 리뷰에서 강제)
 

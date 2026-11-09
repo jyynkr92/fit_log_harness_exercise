@@ -4,13 +4,13 @@
 
 ## 도메인
 
-| 도메인 | 경로 | 책임 |
-| --- | --- | --- |
-| auth | `features/auth/` | 로그인/세션 (Supabase Auth) |
-| workouts | `features/workouts/` | 운동 세션·세트 기록 CRUD |
-| exercises | `features/exercises/` | 운동 종목 카탈로그 |
-| stats | `features/stats/` | 볼륨·PR·빈도 등 통계 계산과 시각화 |
-| profile | `features/profile/` | 계정 정보, 로그아웃 (단위 설정은 미구현) |
+| 도메인    | 경로                  | 책임                                     |
+| --------- | --------------------- | ---------------------------------------- |
+| auth      | `features/auth/`      | 로그인/세션 (Supabase Auth)              |
+| workouts  | `features/workouts/`  | 운동 세션·세트 기록 CRUD                 |
+| exercises | `features/exercises/` | 운동 종목 카탈로그                       |
+| stats     | `features/stats/`     | 볼륨·PR·빈도 등 통계 계산과 시각화       |
+| profile   | `features/profile/`   | 계정 정보, 로그아웃 (단위 설정은 미구현) |
 
 > 도메인 추가 시 이 표를 갱신한다.
 
@@ -22,31 +22,31 @@
 ```
 types → schema ─┬→ repo ────┐
                 └→ service ─┴→ store → hooks → components
-lib/ (Providers: supabase, auth, theme, utils) — 어디서든 사용, 단 lib/supabase 는 repo 만
+lib/ (Providers: supabase, units, network, errors, theme, utils) — 어디서든 사용, 단 lib/supabase 는 repo 만
 ```
 
-| 레이어 | import 가능한 같은 feature 레이어 |
-| --- | --- |
-| types | — |
-| schema | types |
-| repo | types, schema |
-| service | types, schema |
-| store | types, schema, repo, service |
-| hooks | types, schema, service, store |
-| components | types, schema, service, hooks |
+| 레이어     | import 가능한 같은 feature 레이어 |
+| ---------- | --------------------------------- |
+| types      | —                                 |
+| schema     | types                             |
+| repo       | types, schema                     |
+| service    | types, schema                     |
+| store      | types, schema, repo, service      |
+| hooks      | types, schema, service, store     |
+| components | types, schema, service, hooks     |
 
 > 이 표는 `scripts/check-architecture.mjs`의 `LAYER_ALLOW`와 동기화한다.
 
-| 레이어 | 폴더 | 할 수 있는 것 | 할 수 없는 것 |
-| --- | --- | --- | --- |
-| types | `types/` | 도메인 타입 정의 | 어떤 런타임 import도 |
-| schema | `schema/` | 경계 파싱/검증 (zod 등) | I/O |
-| repo | `repo/` | Supabase 호출, 응답 파싱 | 비즈니스 로직, React |
-| service | `service/` | 순수 비즈니스 로직 (통계 계산 등) | I/O, React, store |
-| store | `store/` | Zustand 상태 + repo/service 호출 orchestration | React 컴포넌트 |
-| hooks | `hooks/` | store/service를 React에 연결 | supabase 직접 호출 |
-| components | `components/` | 도메인 UI (Reusables 조합) | repo, supabase |
-| (public) | `index.ts` | 외부에 노출할 것만 re-export | — |
+| 레이어     | 폴더          | 할 수 있는 것                                  | 할 수 없는 것        |
+| ---------- | ------------- | ---------------------------------------------- | -------------------- |
+| types      | `types/`      | 도메인 타입 정의                               | 어떤 런타임 import도 |
+| schema     | `schema/`     | 경계 파싱/검증 (zod 등)                        | I/O                  |
+| repo       | `repo/`       | Supabase 호출, 응답 파싱                       | 비즈니스 로직, React |
+| service    | `service/`    | 순수 비즈니스 로직 (통계 계산 등)              | I/O, React, store    |
+| store      | `store/`      | Zustand 상태 + repo/service 호출 orchestration | React 컴포넌트       |
+| hooks      | `hooks/`      | store/service를 React에 연결                   | supabase 직접 호출   |
+| components | `components/` | 도메인 UI (Reusables 조합)                     | repo, supabase       |
+| (public)   | `index.ts`    | 외부에 노출할 것만 re-export                   | —                    |
 
 ### 바깥 규칙
 
@@ -57,6 +57,17 @@ lib/ (Providers: supabase, auth, theme, utils) — 어디서든 사용, 단 lib/
 - 순수 레이어(`types`/`schema`/`service`)는 다른 feature 를 **`import type` 으로만** 가져온다.
   feature index 는 store·repo·supabase 까지 끌고 와서 순수성과 단위 테스트를 깨뜨린다.
 - `components/*.tsx`(ui 밖): 도메인 무관 공유 UI. `features/` import 금지.
+- 교차 관심사인 기기 설정(무게 단위)은 `lib/units` 의 스토어에 둔다 (테마와 같은 취급). 도메인 상태는 features 에.
+
+## 오프라인 데이터 흐름
+
+```
+입력 → store.push(op) → outbox(AsyncStorage) → 화면 = applyOutbox(server, outbox)
+                         └ flush: repo.pushOp(op) 순서대로 → 성공 시 server 에 확정, 큐에서 제거
+트리거: 연결 복구(lib/network) · 포그라운드 · 15초 재시도 (hooks/useWorkoutSync, 탭 레이아웃에 마운트)
+```
+
+상세: [docs/design-docs/0001-offline-outbox.md](docs/design-docs/0001-offline-outbox.md)
 
 ## 데이터 흐름 예: 세트 기록
 
