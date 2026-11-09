@@ -23,6 +23,7 @@ const LAYER_ALLOW = {
   components: ['types', 'schema', 'service', 'hooks', 'components'],
 };
 const LAYERS = Object.keys(LAYER_ALLOW);
+const PURE_LAYERS = ['types', 'schema', 'service'];
 
 const violations = [];
 const report = (file, line, rule, msg, fix) =>
@@ -77,8 +78,13 @@ for (const file of SCAN_DIRS.flatMap((d) => walk(join(ROOT, d)))) {
   // 불변식 7: 파일 크기
   const lines = src.split('\n').length;
   if (lines > MAX_LINES && !relFile.endsWith('database.types.ts')) {
-    report(file, 1, 'INV7/file-size', `${lines}줄 (최대 ${MAX_LINES})`,
-      '책임별로 파일을 분리하세요: 하위 컴포넌트 추출, service 함수 분리, 상수는 별도 파일로.');
+    report(
+      file,
+      1,
+      'INV7/file-size',
+      `${lines}줄 (최대 ${MAX_LINES})`,
+      '책임별로 파일을 분리하세요: 하위 컴포넌트 추출, service 함수 분리, 상수는 별도 파일로.'
+    );
   }
 
   // 불변식 6: 하드코딩 색상 (tsx/ts 내 문자열)
@@ -86,8 +92,13 @@ for (const file of SCAN_DIRS.flatMap((d) => walk(join(ROOT, d)))) {
     src.split('\n').forEach((l, i) => {
       if (/^\s*(\/\/|\*)/.test(l)) return;
       if (/['"`][^'"`]*$/.test(l.split(COLOR_RE)[0] ?? '') && COLOR_RE.test(l)) {
-        report(file, i + 1, 'INV6/hardcoded-color', `하드코딩 색상: ${l.trim().slice(0, 80)}`,
-          'NativeWind 시맨틱 토큰 클래스(bg-primary, text-muted-foreground 등)를 쓰세요. 새 색이 필요하면 global.css 테마 변수에 추가. docs/DESIGN.md');
+        report(
+          file,
+          i + 1,
+          'INV6/hardcoded-color',
+          `하드코딩 색상: ${l.trim().slice(0, 80)}`,
+          'NativeWind 시맨틱 토큰 클래스(bg-primary, text-muted-foreground 등)를 쓰세요. 새 색이 필요하면 global.css 테마 변수에 추가. docs/DESIGN.md'
+        );
       }
     });
   }
@@ -98,12 +109,21 @@ for (const file of SCAN_DIRS.flatMap((d) => walk(join(ROOT, d)))) {
 
     // 불변식 2: Supabase는 repo/ 와 lib/supabase 에서만
     const isSupabase =
-      spec === '@supabase/supabase-js' || /(^|\/)lib\/supabase(\.\w+)?$/.test(spec) || spec === '@/lib/supabase';
+      spec === '@supabase/supabase-js' ||
+      /(^|\/)lib\/supabase(\.\w+)?$/.test(spec) ||
+      spec === '@/lib/supabase';
     if (isSupabase) {
-      const ok = (from.area === 'features' && from.layer === 'repo') || (from.area === 'lib' && /^supabase/.test(from.rel));
+      const ok =
+        (from.area === 'features' && from.layer === 'repo') ||
+        (from.area === 'lib' && /^supabase/.test(from.rel));
       if (!ok) {
-        report(file, ln, 'INV2/supabase-outside-repo', `'${spec}' import`,
-          'Supabase 호출을 features/<domain>/repo/ 로 옮기고, 여기서는 store/hooks 를 통해 사용하세요. ARCHITECTURE.md#레이어');
+        report(
+          file,
+          ln,
+          'INV2/supabase-outside-repo',
+          `'${spec}' import`,
+          'Supabase 호출을 features/<domain>/repo/ 로 옮기고, 여기서는 store/hooks 를 통해 사용하세요. ARCHITECTURE.md#레이어'
+        );
       }
     }
 
@@ -112,36 +132,76 @@ for (const file of SCAN_DIRS.flatMap((d) => walk(join(ROOT, d)))) {
     const to = classify(target);
 
     // lib, components/ui 는 features 를 몰라야 함
-    if ((from.area === 'lib' || from.area === 'ui') && to.area === 'features') {
-      report(file, ln, 'INV1/provider-imports-feature', `${from.area} → features (${spec})`,
-        'lib/ 와 components/ui/ 는 최하단 레이어입니다. 필요한 타입/로직을 lib/ 로 내리거나, feature 쪽에서 주입하세요.');
+    if ((from.area === 'lib' || from.area === 'ui' || from.area === 'components') && to.area === 'features') {
+      report(
+        file,
+        ln,
+        'INV1/provider-imports-feature',
+        `${from.area} → features (${spec})`,
+        'lib/ 와 components/ 는 최하단 레이어입니다. 필요한 타입/로직을 lib/ 로 내리거나, feature 쪽에서 주입하세요.'
+      );
     }
 
     // 불변식 5: app/ 은 feature public index 만
     if (from.area === 'app' && to.area === 'features' && to.layer !== 'index' && to.rel !== '') {
-      report(file, ln, 'INV5/route-reaches-internal', `라우트가 feature 내부를 import: ${spec}`,
-        `'@/features/${to.feature}' (index.ts) 에서 re-export 한 것만 사용하세요. 필요하면 features/${to.feature}/index.ts 에 export 추가.`);
+      report(
+        file,
+        ln,
+        'INV5/route-reaches-internal',
+        `라우트가 feature 내부를 import: ${spec}`,
+        `'@/features/${to.feature}' (index.ts) 에서 re-export 한 것만 사용하세요. 필요하면 features/${to.feature}/index.ts 에 export 추가.`
+      );
     }
 
     if (from.area === 'features' && to.area === 'features') {
+      // 불변식 1 보강: 순수 레이어(types/schema/service)는 다른 feature 를 type-only 로만 import
+      // (feature index 는 store·repo·supabase 까지 끌고 와서 순수성과 테스트를 깨뜨린다)
+      if (
+        from.feature !== to.feature &&
+        PURE_LAYERS.includes(from.layer) &&
+        !/^(import|export)\s+type\s/.test(m[0])
+      ) {
+        report(
+          file,
+          ln,
+          'INV1/pure-layer-runtime-import',
+          `${from.layer} → ${to.feature} 런타임 import (${spec})`,
+          `'import type { ... }' 로 바꾸세요. 런타임 함수가 필요하면 이 feature 의 service 에 작은 순수 함수로 두거나, 여러 도메인이 쓰면 lib/ 로 승격하세요.`
+        );
+      }
       // 불변식 4: 다른 feature 는 index 로만
       if (from.feature !== to.feature) {
         if (to.layer !== 'index' && to.rel !== '') {
-          report(file, ln, 'INV4/cross-feature-internal', `${from.feature} → ${to.feature} 내부 (${spec})`,
-            `'@/features/${to.feature}' 로 import 하고, 필요한 것은 features/${to.feature}/index.ts 에서 export 하세요.`);
+          report(
+            file,
+            ln,
+            'INV4/cross-feature-internal',
+            `${from.feature} → ${to.feature} 내부 (${spec})`,
+            `'@/features/${to.feature}' 로 import 하고, 필요한 것은 features/${to.feature}/index.ts 에서 export 하세요.`
+          );
         }
         continue;
       }
       // 불변식 1: 같은 feature 내 레이어 방향
       if (LAYERS.includes(from.layer) && LAYERS.includes(to.layer) && from.layer !== to.layer) {
         if (!LAYER_ALLOW[from.layer].includes(to.layer)) {
-          report(file, ln, 'INV1/layer-direction', `${from.layer} → ${to.layer} (${spec})`,
-            `${from.layer}/ 는 [${LAYER_ALLOW[from.layer].join(', ') || '없음'}] 만 import 할 수 있습니다. 로직을 올바른 레이어로 옮기세요. ARCHITECTURE.md#레이어`);
+          report(
+            file,
+            ln,
+            'INV1/layer-direction',
+            `${from.layer} → ${to.layer} (${spec})`,
+            `${from.layer}/ 는 [${LAYER_ALLOW[from.layer].join(', ') || '없음'}] 만 import 할 수 있습니다. 로직을 올바른 레이어로 옮기세요. ARCHITECTURE.md#레이어`
+          );
         }
       }
       if (from.layer !== 'index' && to.layer === 'index') {
-        report(file, ln, 'INV1/self-index-import', `자기 feature의 index.ts import (${spec})`,
-          '같은 feature 안에서는 index.ts 대신 실제 파일을 직접 import 하세요 (순환 의존 방지).');
+        report(
+          file,
+          ln,
+          'INV1/self-index-import',
+          `자기 feature의 index.ts import (${spec})`,
+          '같은 feature 안에서는 index.ts 대신 실제 파일을 직접 import 하세요 (순환 의존 방지).'
+        );
       }
     }
   }
