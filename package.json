@@ -14,10 +14,12 @@
     "check:arch": "node scripts/check-architecture.mjs",
     "db:start": "npx -y supabase@3.0.0 start",
     "db:reset": "npx -y supabase@3.0.0 db reset",
-    "db:types": "npx -y supabase@3.0.0 gen types typescript --local > lib/database.types.ts"
+    "db:types": "npx -y supabase@3.0.0 gen types typescript --local > lib/database.types.ts",
+    "e2e": "maestro test .maestro"
   },
   "dependencies": {
     "@react-native-async-storage/async-storage": "2.2.0",
+    "@react-native-community/netinfo": "12.0.1",
     "@rn-primitives/label": "^1.5.2",
     "@rn-primitives/portal": "~1.4.0",
     "@rn-primitives/separator": "^1.5.2",
@@ -27,6 +29,7 @@
     "clsx": "^2.1.1",
     "expo": "~56.0.13",
     "expo-constants": "~56.0.19",
+    "expo-crypto": "~56.0.5",
     "expo-linking": "~56.0.14",
     "expo-router": "~56.2.12",
     "expo-secure-store": "~56.0.4",
@@ -53,6 +56,7 @@
   },
   "devDependencies": {
     "@babel/core": "^7.26.0",
+    "@testing-library/react-native": "^14.1.0",
     "@types/jest": "^30.0.0",
     "@types/react": "~19.2.10",
     "eslint": "^9.39.5",
@@ -71,7 +75,17 @@
       "**/*.test.tsx"
     ],
     "testPathIgnorePatterns": [
-      "/node_modules/"
-    ]
+      "/node_modules/",
+      "/.maestro/"
+    ],
+    "setupFiles": [
+      "<rootDir>/jest.setup.ts"
+    ],
+    "transformIgnorePatterns": [
+      "node_modules/(?!((jest-)?react-native|@react-native(-community)?|expo(nent)?|@expo(nent)?/.*|@expo-google-fonts/.*|react-navigation|@react-navigation/.*|@unimodules/.*|unimodules|sentry-expo|native-base|react-native-svg|lucide-react-native|@rn-primitives/.*|nativewind|react-native-css-interop|zustand))"
+    ],
+    "moduleNameMapper": {
+      "^lucide-react-native$": "<rootDir>/node_modules/lucide-react-native/dist/cjs/lucide-react-native.js"
+    }
   }
 }
